@@ -9,6 +9,7 @@ const pool = new Pool({
 
 export async function connectToDatabase() {
   try {
+    
     const client = await pool.connect();
     console.log('✓ Database connected successfully');
     client.release();
