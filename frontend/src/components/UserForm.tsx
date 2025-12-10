@@ -19,8 +19,6 @@ export function UserForm({ onUserCreated }: UserFormProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // BUG #4: Form doesn't clear after successful submission
-  // After creating a user, the form fields should be reset to empty strings
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -62,8 +60,6 @@ export function UserForm({ onUserCreated }: UserFormProps) {
         throw new Error(data.error || 'Failed to create user');
       }
 
-      // SUCCESS - but form doesn't clear (BUG!)
-      // Missing: setName(''), setEmail(''), setDepartment('')
       onUserCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -122,8 +118,6 @@ export function UserForm({ onUserCreated }: UserFormProps) {
             />
           </div>
 
-          {/* BUG #5: Button should be disabled during loading
-              The button should have disabled={isLoading} to prevent multiple submissions */}
           <Button type="submit" className="w-full">
             {isLoading ? 'Creating...' : 'Create User'}
           </Button>

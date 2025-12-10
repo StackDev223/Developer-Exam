@@ -25,8 +25,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // BUG #6: Missing dependency array causes infinite loop
-  // useEffect should have [API_URL] or [] as dependency array
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -49,7 +47,7 @@ function App() {
 
   useEffect(() => {
     fetchUsers();
-  }); // MISSING DEPENDENCY ARRAY - causes infinite fetch loop!
+  });
 
   const handleUserCreated = () => {
     // Refresh the user list after creating a new user

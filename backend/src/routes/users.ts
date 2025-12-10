@@ -4,16 +4,11 @@ import pool from '../db/connection';
 const router = Router();
 
 // GET all users with their posts
-// BUG #3: N+1 Query Problem - fetches posts in a loop instead of using JOIN
-// This is inefficient and will make multiple database queries
 router.get('/', async (req: Request, res: Response) => {
   try {
-    // First query: Get all users
     const usersResult = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
     const users = usersResult.rows;
 
-    // PROBLEM: Making a separate query for each user's posts (N+1 problem)
-    // Should use a JOIN or a single query with aggregation
     for (let i = 0; i < users.length; i++) {
       const postsResult = await pool.query(
         'SELECT * FROM posts WHERE user_id = $1',
