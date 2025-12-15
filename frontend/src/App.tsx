@@ -30,7 +30,7 @@ function App() {
       setLoading(true);
       setError('');
 
-      const response = await fetch(`${API_URL}/users`);
+      const response = await fetch(`${API_URL}/api/users`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch users');
@@ -47,7 +47,7 @@ function App() {
 
   useEffect(() => {
     fetchUsers();
-  });
+  }, []);
 
   const handleUserCreated = () => {
     // Refresh the user list after creating a new user
