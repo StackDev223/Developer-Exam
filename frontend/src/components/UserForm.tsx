@@ -43,7 +43,7 @@ export function UserForm({ onUserCreated }: UserFormProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/users`, {
+      const response = await fetch(`${API_URL}/api/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,6 +59,10 @@ export function UserForm({ onUserCreated }: UserFormProps) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to create user');
       }
+
+      setName('');
+      setEmail('');
+      setDepartment('');
 
       onUserCreated();
     } catch (err) {
@@ -118,7 +122,7 @@ export function UserForm({ onUserCreated }: UserFormProps) {
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Creating...' : 'Create User'}
           </Button>
         </form>

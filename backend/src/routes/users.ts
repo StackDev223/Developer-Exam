@@ -1,44 +1,61 @@
-import { Router, Request, Response } from 'express';
-import pool from '../db/connection';
+import { Router, Request, Response } from "express";
+import pool from "../db/connection";
 
 const router = Router();
 
 // GET all users with their posts
-router.get('/', async (req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response) => {
   try {
-    const usersResult = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
-    const users = usersResult.rows;
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.department,
+        u.created_at,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', p.id,
+              'user_id', p.user_id,
+              'title', p.title,
+              'content', p.content,
+              'created_at', p.created_at
+            )
+            ORDER BY p.created_at DESC
+          ) FILTER (WHERE p.id IS NOT NULL),
+          '[]'::json
+        ) AS posts
+      FROM users u
+      LEFT JOIN posts p ON p.user_id = u.id
+      GROUP BY u.id
+      ORDER BY u.created_at DESC;
+    `);
 
-    for (let i = 0; i < users.length; i++) {
-      const postsResult = await pool.query(
-        'SELECT * FROM posts WHERE user_id = $1',
-        [users[i].id]
-      );
-      users[i].posts = postsResult.rows;
-    }
-
-    res.json(users);
+    res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Failed to fetch users' });
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Failed to fetch users" });
   }
 });
 
 // GET single user by ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [
+      id,
+    ]);
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = userResult.rows[0];
 
     // Fetch user's posts
     const postsResult = await pool.query(
-      'SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC',
+      "SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC",
       [id]
     );
 
@@ -46,35 +63,35 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ error: 'Failed to fetch user' });
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Failed to fetch user" });
   }
 });
 
 // POST create new user
-router.post('/', async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const { name, email, department } = req.body;
 
     if (!name || !email) {
-      return res.status(400).json({ error: 'Name and email are required' });
+      return res.status(400).json({ error: "Name and email are required" });
     }
 
     const result = await pool.query(
-      'INSERT INTO users (name, email, department) VALUES ($1, $2, $3) RETURNING *',
+      "INSERT INTO users (name, email, department) VALUES ($1, $2, $3) RETURNING *",
       [name, email, department || null]
     );
 
     res.status(201).json(result.rows[0]);
   } catch (error: any) {
-    console.error('Error creating user:', error);
+    console.error("Error creating user:", error);
 
     // Handle duplicate email error
-    if (error.code === '23505') {
-      return res.status(400).json({ error: 'Email already exists' });
+    if (error.code === "23505") {
+      return res.status(400).json({ error: "Email already exists" });
     }
 
-    res.status(500).json({ error: 'Failed to create user' });
+    res.status(500).json({ error: "Failed to create user" });
   }
 });
 

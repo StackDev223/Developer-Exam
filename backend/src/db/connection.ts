@@ -3,8 +3,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const connectionString = process.env.DATABASE_URL || "postgresql://dev_user:dev_password@localhost:5433/user_management";
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+connectionString,
 });
 
 export async function connectToDatabase() {
